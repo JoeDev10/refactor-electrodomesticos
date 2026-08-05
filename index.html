@@ -1132,6 +1132,21 @@ async function importData(e){
 /* =========================================================
    DATOS DE EJEMPLO (solo la primera vez)
    ========================================================= */
+/* Los ejemplos viejos se cargaron sin fotos. Si el inventario sigue siendo
+   ese set intacto, lo reemplazamos por el nuevo con fotos. Si el usuario ya
+   cargó o editó algo propio, no se toca nada. */
+const DEMO_NAMES = ['Heladera Gafa Eternity 340L con freezer','Cocina Longvie 4 hornallas','Lavarropas Drean Next 8kg','Microondas BGH Quick Chef 23L'];
+async function refreshDemoPhotos(){
+  if(localStorage.getItem('refactor-demo-photos')) return;
+  const untouched = products.length && products.every(p => DEMO_NAMES.includes(p.name) && !(p.images||[]).length);
+  if(untouched){
+    for(const p of products) await dbDelete(p.id);
+    products = [];
+    localStorage.removeItem('refactor-seeded-v2');
+  }
+  localStorage.setItem('refactor-demo-photos','1');
+}
+
 async function seedIfEmpty(){
   if(products.length) return;
   if(localStorage.getItem('refactor-seeded-v2')) return;
@@ -1174,6 +1189,7 @@ async function init(){
   bind();
   await openDB();
   products=await dbGetAll();
+  await refreshDemoPhotos();
   await seedIfEmpty();
   renderChips(); renderPlate(); renderGrid();
 }
