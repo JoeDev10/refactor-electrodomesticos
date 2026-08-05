@@ -714,8 +714,16 @@ function dbPut(item){ return new Promise((res,rej)=>{ const r=tx('readwrite').pu
 function dbDelete(id){ return new Promise((res,rej)=>{ const r=tx('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
 
 /* ---------- Config ---------- */
-const DEFAULT_SETTINGS = { name:'Refactor', tag:'Electrodomésticos usados', wa:'', pass:'admin123' };
-function getSettings(){ try{ return {...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('refactor-settings')||'{}')}; }catch{ return {...DEFAULT_SETTINGS}; } }
+/* wa: número de ejemplo para que se vea el botón en la demo.
+   Reemplazalo por el real desde Configuración. */
+const DEFAULT_SETTINGS = { name:'Refactor', tag:'Electrodomésticos usados', wa:'5491100000000', pass:'admin123' };
+function getSettings(){
+  let s;
+  try{ s = {...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('refactor-settings')||'{}')}; }
+  catch{ s = {...DEFAULT_SETTINGS}; }
+  if(!s.wa) s.wa = DEFAULT_SETTINGS.wa;   // sin número guardado, usa el de ejemplo
+  return s;
+}
 function setSettings(s){ localStorage.setItem('refactor-settings', JSON.stringify(s)); }
 
 const CATEGORIES = ['Heladeras','Freezers','Cocinas','Lavarropas','Microondas','Aires acondicionados','Termotanques','Otros'];
@@ -1126,15 +1134,15 @@ async function importData(e){
    ========================================================= */
 async function seedIfEmpty(){
   if(products.length) return;
-  if(localStorage.getItem('refactor-seeded')) return;
+  if(localStorage.getItem('refactor-seeded-v2')) return;
   const demo=[
-    {name:'Heladera Gafa Eternity 340L con freezer', cat:'Heladeras', price:265000, cond:'Muy bueno', desc:'Ciclo de frío, funcionando perfecto. Interior impecable, burletes nuevos. Ideal para familia.', available:true},
-    {name:'Cocina Longvie 4 hornallas', cat:'Cocinas', price:130000, cond:'Bueno', desc:'Encendido eléctrico, horno con visor. Detalle estético menor en la puerta.', available:true},
-    {name:'Lavarropas Drean Next 8kg', cat:'Lavarropas', price:180000, cond:'Muy bueno', desc:'Carga frontal, todos los programas funcionando. Muy poco uso.', available:true},
-    {name:'Microondas BGH Quick Chef 23L', cat:'Microondas', price:52000, cond:'Como nuevo', desc:'Grill y plato giratorio. Como nuevo, con caja original.', available:false},
+    {name:'Heladera Gafa Eternity 340L con freezer', cat:'Heladeras', price:265000, cond:'Muy bueno', desc:'Ciclo de frío, funcionando perfecto. Interior impecable, burletes nuevos. Ideal para familia.', available:true, images:['fotos/heladera.webp']},
+    {name:'Cocina Longvie 4 hornallas', cat:'Cocinas', price:130000, cond:'Bueno', desc:'Encendido eléctrico, horno con visor. Detalle estético menor en la puerta.', available:true, images:['fotos/cocina.webp']},
+    {name:'Lavarropas Drean Next 8kg', cat:'Lavarropas', price:180000, cond:'Muy bueno', desc:'Carga frontal, todos los programas funcionando. Muy poco uso.', available:true, images:['fotos/lavarropas.webp']},
+    {name:'Microondas BGH Quick Chef 23L', cat:'Microondas', price:52000, cond:'Como nuevo', desc:'Grill y plato giratorio. Como nuevo, con caja original.', available:false, images:['fotos/microondas.webp']},
   ];
   for(const d of demo) await dbPut({ id:uid(), images:[], createdAt:Date.now()-Math.floor(Math.random()*1e7), ...d });
-  localStorage.setItem('refactor-seeded','1');
+  localStorage.setItem('refactor-seeded-v2','1');
   products=await dbGetAll();
 }
 
